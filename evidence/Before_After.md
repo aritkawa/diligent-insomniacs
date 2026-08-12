@@ -1,17 +1,17 @@
-# 証拠物件3: Before → After — AI介在箇所の改善前後
+# Evidence 3: Before → After — AI-involved spots, before and after
 
-> 全項目は `_progress.md`(日次作業ログ)に一次記録がある。日付は記録日。
+> Every row has a primary record in `_progress.md` (the daily working log). Dates are the record dates.
 
-| # | 対象 | Before | After | 一次記録 |
+| # | Target | Before | After | Primary record |
 |---|---|---|---|---|
-| 1 | テーマ選定 | 候補3案(所得×幸福 / 結婚×少子化 / 睡眠×労働) | データ検証で2案棄却、外れ値=日本の「ねじれ」1案に集中(証拠物件1の図1-4) | 07-08〜09 |
-| 2 | 核心ファクト | 初稿「女性が男性より寝ていない国は5/33カ国」 | 再検証で**7/33に訂正**。同時に「日本男性の無償労働40分=世界最少」を発見し第三幕の核心構図に昇格 | 07-09 |
-| 3 | 誇張の抑制 | 「日本は睡眠の男女差も世界一」(キャッチーだが誤り) | 最大差はインド−14分と判明 → 「男性も世界最少、その男性よりさらに12分短い」に修正 | 07-09 |
-| 4 | UX | スクロール6画面、ランキング2チャート | 人間FB「長い」→ 4画面に圧縮、トグル+FLIPアニメの1チャートに統合 | 07-09 |
-| 5 | ILOデータ | 手動整形CSV 26カ国(**UK欠落**、発見されず) | 抽出スクリプト化(`extract_ilo_49h.py`)で591行/27カ国、欠落を構造的に防止。下流の国数表記まで同期 | 07-16 |
-| 6 | 拡張案の棄却 | 幸福度×無償労働差 r=-0.74(有望) | 調査年マッチ厳密化の再スパイクで**r=-0.55に減衰** → 不採用(証拠物件1の図3) | 07-16 |
-| 7 | セキュリティ | LLM回答を`innerHTML`で直挿入(自己XSSの芽) | `esc()`でエスケープ+悪性ペイロード注入テストで無害化確認 ×4ファイル | 07-12 |
-| 8 | バグ修正 | 付記タイムラインhoverで画面が振動(reflowループ) | 原因特定(キャプション差替→高さ変動→スクロールアンカリング)→ SVG内固定寸法textに移設しレイアウトシフト自体をゼロ化 | 07-12 |
-| 9 | 引用 | LLM経由の学術引用(捏造リスクあり) | DOI・巻号・PMIDをPubMed現物照合。確認できない「光」は特定論文の引用を本文から外す | 07-16 |
-| 10 | a11y | SVGチャートがホバー専用(キーボード/SR不可) | tabindex+role+aria-label+focus/keydownを8箇所実装、headless 30項目PASS | 07-16 |
-| 11 | 保守性 | 単体版含む4ファイルの二重管理 | 単一ソース(index_ja/index+data.js)+配信時インライン展開に統合 | 07-16 |
+| 1 | Theme selection | 3 candidates (income × happiness / marriage × fertility / sleep × work) | 2 killed by data validation; concentrated on the single outlier — Japan's "twist" (Evidence 1, Figures 1–4) | 07-08–09 |
+| 2 | Core fact | First draft: "women sleep less than men in 5 of 33 countries" | Re-validated and **corrected to 7 of 33**. At the same time, discovered "Japanese men's 40 min of unpaid work = lowest in the world" and promoted it to the core framing of Act 3 | 07-09 |
+| 3 | Curbing exaggeration | "Japan also has the worst gender sleep gap in the world" (catchy but wrong) | Found the largest gap is India at −14 min → corrected to "men too sleep the least, and women sleep 12 min less even than those men" | 07-09 |
+| 4 | UX | 6 scroll screens, 2 ranking charts | Human feedback "too long" → compressed to 4 screens, merged into one chart with a toggle + FLIP animation | 07-09 |
+| 5 | ILO data | Manually shaped CSV, 26 countries (**UK missing**, undetected) | Scripted the extraction (`extract_ilo_49h.py`): 591 rows / 27 countries, missing data structurally prevented; synced down to the country-count wording | 07-16 |
+| 6 | Rejecting an expansion | Happiness × unpaid-work gap r=−0.74 (promising) | A stricter re-spike with exact survey-year matching **decayed it to r=−0.55** → not adopted (Evidence 1, Figure 3) | 07-16 |
+| 7 | Security | LLM answer inserted directly via `innerHTML` (a self-XSS seedling) | Escaped with `esc()` + confirmed neutralized by a malicious-payload injection test × 4 files | 07-12 |
+| 8 | Bug fix | The note timeline shook the screen on hover (a reflow loop) | Root-caused (caption swap → height change → scroll anchoring) → moved into fixed-size text inside the SVG, zeroing out the layout shift itself | 07-12 |
+| 9 | Citations | LLM-sourced academic citations (fabrication risk) | Cross-checked DOI, volume, and PMID against PubMed itself. For "light," which could not be verified, no specific paper is cited in the body | 07-16 |
+| 10 | Accessibility (a11y) | SVG charts were hover-only (no keyboard / screen reader) | Implemented tabindex + role + aria-label + focus/keydown in 8 places; headless 30 checks PASS | 07-16 |
+| 11 | Maintainability | Double-managing 4 files, including standalone versions | Consolidated to a single source (index_ja / index + data.js) + inline expansion at delivery time | 07-16 |

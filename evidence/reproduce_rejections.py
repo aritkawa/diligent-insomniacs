@@ -1,24 +1,25 @@
 # -*- coding: utf-8 -*-
 """
 VizCon 2026 "The World's Most Diligent Insomniacs"
-GenAI活用ドキュメント 証拠物件: テーマ検証(棄却/採用)の散布図を再現する。
+GenAI Usage Document evidence: reproduces the theme-validation scatterplots (rejected / adopted).
 
-元の検証は 2026-07-08〜09 および 07-12 に Aki(AI)との対話セッションで実施。
-本スクリプトは当時と同じ生データ(C:/Viz 配下)から同じ結論を再現する。
-実行: streamlit_app/.venv の python で python reproduce_rejections.py
-出力: evidence/fig_*.png 4枚 + コンソールに相関値
+The original validation was done in dialogue sessions with Aki (the AI) on 2026-07-08..09 and 07-12.
+This script reproduces the same conclusions from the same raw data (under C:/Viz).
+Run: python reproduce_rejections.py (using the python in streamlit_app/.venv)
+Output: 4 evidence/fig_*.png files + the correlation values printed to the console.
 """
+import os
 import numpy as np
 import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-plt.rcParams["font.family"] = "Meiryo"
+plt.rcParams["font.family"] = "DejaVu Sans"
 plt.rcParams["figure.dpi"] = 150
 
 BASE = "C:/Viz"
-OUT = f"{BASE}/01_sleep_work/evidence"
+OUT = os.path.dirname(os.path.abspath(__file__))  # write figures next to this script
 
 INK = "#1b2440"; AMBER = "#c8922a"; RED = "#c0392b"; GREY = "#8a90a2"
 
@@ -34,7 +35,7 @@ def corr(a, b):
     return float(np.corrcoef(a[m], b[m])[0, 1]), int(m.sum())
 
 # ---------------------------------------------------------------
-# 図1【棄却】所得×幸福 — 相関が強すぎて発見(Discovery)がない
+# Figure 1 [REJECTED] Income x Happiness -- correlation too strong, no Discovery
 # ---------------------------------------------------------------
 gdp = pd.read_csv(f"{BASE}/02_money_happiness/gdp_per_capita_worldbank.csv")
 hap = pd.read_csv(f"{BASE}/02_money_happiness/happiness_cantril_ladder.csv")
@@ -51,32 +52,34 @@ ax.scatter(m1.gdp, m1.life_sat, s=18, color=INK, alpha=0.55)
 jp = m1[m1.Code == "JPN"]
 if len(jp):
     ax.scatter(jp.gdp, jp.life_sat, s=60, color=RED, zorder=5)
-    ax.annotate("日本", (jp.gdp.iloc[0], jp.life_sat.iloc[0]),
+    ax.annotate("Japan", (jp.gdp.iloc[0], jp.life_sat.iloc[0]),
                 xytext=(8, -16), textcoords="offset points", color=RED, fontsize=9)
 ax.set_xscale("log")
-ax.set_xlabel("一人あたりGDP (log, int-$)", fontsize=9)
-ax.set_ylabel("生活満足度 (Cantril ladder)", fontsize=9)
-style(ax, f"【棄却】所得 × 幸福度  r = {r1:.3f} (log所得, N={n1}, {yr}年)",
-      "強すぎる相関 = 誰も驚かない。「天井(サチュレーション)」も出ず、\nDiscoveryが無いためテーマ棄却 (2026-07-08)")
+ax.set_xlabel("GDP per capita (log, int-$)", fontsize=9)
+ax.set_ylabel("Life satisfaction (Cantril ladder)", fontsize=9)
+style(ax, f"[REJECTED] Income x Happiness   r = {r1:.3f} (log income, N={n1}, yr {yr})",
+      "Correlation too strong = no one is surprised. No ceiling (saturation) shows either;\nno Discovery, so the theme was rejected (2026-07-08)")
 fig.tight_layout(); fig.savefig(f"{OUT}/fig_rejected_01_money_happiness.png"); plt.close(fig)
-print(f"[1] 所得×幸福: r={r1:.3f} N={n1} ({yr})")
+print(f"[1] income x happiness: r={r1:.3f} N={n1} ({yr})")
 
 # ---------------------------------------------------------------
-# 図2【棄却】結婚×少子化 — 全世界では相関ほぼゼロ、条件付きでしか語れない
+# Figure 2 [REJECTED] Marriage x Fertility -- ~zero correlation worldwide, holds only conditionally
 # ---------------------------------------------------------------
 bom = pd.read_csv(f"{BASE}/03_marriage_fertility/births_outside_marriage.csv")
 tfr = pd.read_csv(f"{BASE}/03_marriage_fertility/total_fertility_rate.csv")
 bom.columns = ["Entity", "Code", "Year", "bom"]
 tfr.columns = ["Entity", "Code", "Year", "tfr"]
-# 各国の婚外子率 最新年 に同年TFRを結合
+# join each country's latest-year births-outside-marriage with the same-year TFR
 bom_latest = bom.sort_values("Year").groupby("Code", as_index=False).last()
 m2 = pd.merge(bom_latest, tfr, on=["Code", "Year"], suffixes=("", "_t"))
 m2 = m2[m2.Code.str.len() == 3]
 r2_all, n2_all = corr(m2.bom, m2.tfr)
-# 欧州+東アジア サブセット(当時の検証と同じ趣旨: 出生登録文化が異なる地域を除外)
-# 注: 当時のスパイク値(全世界0.029/サブセット0.574, 41/32カ国)とは国リストと年マッチの
-#     細部が異なるため数値は完全一致しないが、「全世界では消え、サブセットでのみ
-#     中程度の相関が浮く=条件付きでしか語れない」という棄却根拠の構造は同一。
+# Europe + East Asia subset (same intent as the original validation: exclude regions with
+# different birth-registration cultures).
+# Note: the details of the country list and year-matching differ from the original spike
+#   values (worldwide 0.029 / subset 0.574, 41/32 countries), so the numbers don't match
+#   exactly -- but the rejection rationale ("it vanishes worldwide and only a moderate
+#   correlation surfaces on a subset = it holds only conditionally") has the same structure.
 EU_EA = {"AUT", "BEL", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA", "DEU",
          "GRC", "HUN", "ISL", "IRL", "ITA", "LVA", "LTU", "LUX", "MLT", "NLD", "NOR",
          "POL", "PRT", "ROU", "SVK", "SVN", "ESP", "SWE", "CHE", "GBR", "TUR",
@@ -85,24 +88,24 @@ m2e = m2[m2.Code.isin(EU_EA)]
 r2_sub, n2_sub = corr(m2e.bom, m2e.tfr)
 
 fig, ax = plt.subplots(figsize=(7, 5))
-ax.scatter(m2.bom, m2.tfr, s=18, color=GREY, alpha=0.5, label=f"全世界 r={r2_all:.3f} (N={n2_all})")
-ax.scatter(m2e.bom, m2e.tfr, s=22, color=INK, alpha=0.75, label=f"欧州+東アジア r={r2_sub:.3f} (N={n2_sub})")
-for code, name in [("JPN", "日本"), ("KOR", "韓国"), ("FRA", "フランス")]:
+ax.scatter(m2.bom, m2.tfr, s=18, color=GREY, alpha=0.5, label=f"Worldwide r={r2_all:.3f} (N={n2_all})")
+ax.scatter(m2e.bom, m2e.tfr, s=22, color=INK, alpha=0.75, label=f"Europe + East Asia r={r2_sub:.3f} (N={n2_sub})")
+for code, name in [("JPN", "Japan"), ("KOR", "South Korea"), ("FRA", "France")]:
     row = m2[m2.Code == code]
     if len(row):
         ax.scatter(row.bom, row.tfr, s=60, color=RED, zorder=5)
         ax.annotate(name, (row.bom.iloc[0], row.tfr.iloc[0]),
                     xytext=(6, 6), textcoords="offset points", color=RED, fontsize=9)
-ax.set_xlabel("婚外子率 (%)", fontsize=9)
-ax.set_ylabel("合計特殊出生率 (TFR)", fontsize=9)
+ax.set_xlabel("Births outside marriage (%)", fontsize=9)
+ax.set_ylabel("Total fertility rate (TFR)", fontsize=9)
 ax.legend(fontsize=8, frameon=False)
-style(ax, "【棄却】結婚 × 少子化 — 全世界では相関が消える",
-      "サブセット限定でしか語れない条件付き相関\n+ 地雷3つ(COVID年の誇張/出生登録文化差/既知感) → 棄却 (2026-07-09)")
+style(ax, "[REJECTED] Marriage x Fertility -- the correlation vanishes worldwide",
+      "A conditional correlation that can be told only on a subset\n+ three minefields (COVID-year exaggeration / birth-registration culture / over-familiarity) -> rejected (2026-07-09)")
 fig.tight_layout(); fig.savefig(f"{OUT}/fig_rejected_02_marriage_fertility.png"); plt.close(fig)
-print(f"[2] 結婚×少子化: 全世界 r={r2_all:.3f} N={n2_all} / サブセット r={r2_sub:.3f} N={n2_sub}")
+print(f"[2] marriage x fertility: worldwide r={r2_all:.3f} N={n2_all} / subset r={r2_sub:.3f} N={n2_sub}")
 
 # ---------------------------------------------------------------
-# 図3【棄却】幸福度×無償労働男女差 — 再スパイクで減衰した拡張案
+# Figure 3 [REJECTED] Happiness x unpaid-work gender gap -- an expansion that decayed on re-spike
 # ---------------------------------------------------------------
 summ = pd.read_csv(f"{BASE}/01_sleep_work/QS_ready/qs_country_summary.csv", encoding="utf-8-sig")
 summ["yr"] = summ["survey_year"].astype(str).str.extract(r"(\d{4})").astype(float)
@@ -120,29 +123,29 @@ fig, ax = plt.subplots(figsize=(7, 5))
 ax.scatter(summ.unpaid_gap_women_minus_men, summ.life_sat, s=26, color=INK, alpha=0.7)
 jp = summ[summ.is_japan == 1]
 ax.scatter(jp.unpaid_gap_women_minus_men, jp.life_sat, s=70, color=RED, zorder=5)
-ax.annotate("日本", (jp.unpaid_gap_women_minus_men.iloc[0], jp.life_sat.iloc[0]),
+ax.annotate("Japan", (jp.unpaid_gap_women_minus_men.iloc[0], jp.life_sat.iloc[0]),
             xytext=(8, -4), textcoords="offset points", color=RED, fontsize=9)
-ax.set_xlabel("無償労働の男女差 (女性-男性, 分/日)", fontsize=9)
-ax.set_ylabel("生活満足度 (Cantril ladder)", fontsize=9)
-style(ax, f"【棄却】幸福度 × 無償労働男女差  r = {r3:.3f} (N={n3})",
-      "初回スパイク r=-0.74 → 調査年マッチを厳密化した再スパイクで減衰\n→ 幕として弱く不採用 (2026-07-16)")
+ax.set_xlabel("Unpaid-work gap (women - men, min/day)", fontsize=9)
+ax.set_ylabel("Life satisfaction (Cantril ladder)", fontsize=9)
+style(ax, f"[REJECTED] Happiness x unpaid-work gap   r = {r3:.3f} (N={n3})",
+      "Initial spike r=-0.74 -> decayed on a re-spike with strict survey-year matching\n-> too weak as an act, not adopted (2026-07-16)")
 fig.tight_layout(); fig.savefig(f"{OUT}/fig_rejected_03_happiness_unpaidgap.png"); plt.close(fig)
-print(f"[3] 幸福×無償労働差: r={r3:.3f} N={n3}")
+print(f"[3] happiness x unpaid gap: r={r3:.3f} N={n3}")
 
 # ---------------------------------------------------------------
-# 図4【採用】労働ランク×睡眠ランクの「ねじれ」 — 作品の柱
+# Figure 4 [ADOPTED] the "twist" of work rank x sleep rank -- the pillar of the piece
 # ---------------------------------------------------------------
 fig, ax = plt.subplots(figsize=(7, 5))
 ax.scatter(summ.pure_work_min, summ.sleep_min, s=26, color=INK, alpha=0.7)
 r4, n4 = corr(summ.pure_work_min, summ.sleep_min)
 jp = summ[summ.is_japan == 1]
 ax.scatter(jp.pure_work_min, jp.sleep_min, s=90, color=RED, zorder=5)
-ax.annotate("日本\n労働1位・睡眠33位", (jp.pure_work_min.iloc[0], jp.sleep_min.iloc[0]),
-            xytext=(-130, 6), textcoords="offset points", color=RED, fontsize=9, fontweight="bold")
-ax.set_xlabel("純粋労働時間 (分/日)", fontsize=9)
-ax.set_ylabel("睡眠時間 (分/日)", fontsize=9)
-style(ax, f"【採用】労働 × 睡眠  r = {r4:.3f} (OECD TUS 33カ国)",
-      "外れ値としての日本=「世界一働き、世界一寝ていない」。\n棄却2案と違い、1点の異常が物語になる → 採用 (2026-07-09)")
+ax.annotate("Japan\nwork #1, sleep #33", (jp.pure_work_min.iloc[0], jp.sleep_min.iloc[0]),
+            xytext=(-150, 6), textcoords="offset points", color=RED, fontsize=9, fontweight="bold")
+ax.set_xlabel("Pure work time (min/day)", fontsize=9)
+ax.set_ylabel("Sleep time (min/day)", fontsize=9)
+style(ax, f"[ADOPTED] Work x Sleep   r = {r4:.3f} (OECD TUS, 33 countries)",
+      "Japan as the outlier = 'works the most, sleeps the least in the world'.\nUnlike the 2 rejected themes, a single anomaly becomes a story -> adopted (2026-07-09)")
 fig.tight_layout(); fig.savefig(f"{OUT}/fig_adopted_04_work_sleep.png"); plt.close(fig)
-print(f"[4] 労働×睡眠(採用): r={r4:.3f} N={n4} / 日本 work={jp.pure_work_min.iloc[0]} sleep={jp.sleep_min.iloc[0]}")
+print(f"[4] work x sleep (adopted): r={r4:.3f} N={n4} / Japan work={jp.pure_work_min.iloc[0]} sleep={jp.sleep_min.iloc[0]}")
 print("done ->", OUT)
